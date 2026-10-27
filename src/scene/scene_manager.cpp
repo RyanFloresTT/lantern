@@ -2,7 +2,7 @@
 // Created by rryan on 10/23/2026.
 //
 
-#include "scene_manager.h"
+#include "lantern/scene/scene_manager.h"
 
 #include "raylib.h"
 
