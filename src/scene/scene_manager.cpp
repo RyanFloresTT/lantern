@@ -37,6 +37,10 @@ void SceneManager::Run() {
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, alpha));
         }
 
+        if (frame_callback.has_value()) {
+            frame_callback.value();
+        }
+
         EndDrawing();
     }
 }
