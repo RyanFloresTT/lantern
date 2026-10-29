@@ -16,6 +16,7 @@ add_library(lantern STATIC
         src/game/game.cpp
         include/lantern/assets/asset_store.h
         src/assets/asset_store.cpp
+        include/lantern/raii/window.h
 )
 
 target_include_directories(lantern

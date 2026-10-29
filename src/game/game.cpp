@@ -7,16 +7,8 @@
 #include "raylib.h"
 #include "lantern/scene/scene_manager.h"
 
-Game::Game(const int width, const int height, const std::string& title, const int fps) {
-    InitWindow(width, height, title.c_str());
-    SetTargetFPS(fps);
-    InitAudioDevice();
-}
-
-Game::~Game() {
-    CloseAudioDevice();
-    CloseWindow();
-}
+Game::Game(const int width, const int height, const std::string& title, const int fps) :
+window(width, height, title.c_str(), fps) {}
 
 void Game::Run() {
     scene_manager.Run();
