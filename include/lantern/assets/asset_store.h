@@ -48,7 +48,7 @@ private:
 template <typename T>
 T& AssetStore::Get(std::string_view path) {
     auto& map = std::get<std::unordered_map<std::string, T>>(maps);
-    if (map.contains(path)) {
+    if (map.contains(path.data())) {
         return map[path];
     }
 
