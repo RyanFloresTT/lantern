@@ -41,7 +41,8 @@ public:
 
 private:
     std::tuple<std::unordered_map<std::string, Texture2D>,
-    std::unordered_map<std::string, Sound>> maps;
+    std::unordered_map<std::string, Sound>,
+    std::unordered_map<std::string, Music>> maps;
 };
 
 template <typename T>
