@@ -20,6 +20,7 @@ void SceneManager::Run() {
             current = pending();
             pending = nullptr;
             current->Enter();
+            current->scene_manager = this;
         }
         if (!current) break;
 
