@@ -5,11 +5,6 @@
 
 class SceneManager {
 public:
-    static SceneManager& Get() {
-        static SceneManager instance;
-        return instance;
-    }
-
     void        Run();
     void        Quit() { running = false; }
 
