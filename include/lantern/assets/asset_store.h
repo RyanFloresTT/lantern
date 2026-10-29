@@ -46,12 +46,13 @@ private:
 };
 
 template <typename T>
-T& AssetStore::Get(std::string_view path) {
+T& AssetStore::Get(const std::string_view path) {
     auto& map = std::get<std::unordered_map<std::string, T>>(maps);
-    if (map.contains(path.data())) {
-        return map[path];
+    const std::string data = path.data();
+    if (map.contains(data)) {
+        return map[data];
     }
 
-    map[path] = Asset<T>::Load(path);
-    return map[path];
+    map[data] = Asset<T>::Load(data);
+    return map[data];
 }
