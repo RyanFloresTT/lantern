@@ -38,7 +38,7 @@ void SceneManager::Run() {
         }
 
         if (frame_callback.has_value()) {
-            frame_callback.value();
+            frame_callback.value()();
         }
 
         EndDrawing();
