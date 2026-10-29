@@ -31,7 +31,7 @@ public:
     AssetStore& operator=(AssetStore&& other) noexcept = delete;
 
     template <typename T>
-    T& Get(std::string path);
+    T& Get(std::string_view path);
 
 private:
     std::tuple<std::unordered_map<std::string, Texture2D>,
@@ -39,7 +39,7 @@ private:
 };
 
 template <typename T>
-T& AssetStore::Get(std::string path) {
+T& AssetStore::Get(std::string_view path) {
     auto& map = std::get<std::unordered_map<std::string, T>>(maps);
     if (map.contains(path)) {
         return map[path];
