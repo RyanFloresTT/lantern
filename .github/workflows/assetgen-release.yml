@@ -1,0 +1,140 @@
+# Builds assetgen with Native AOT for each platform and publishes a GitHub release,
+# whenever a push to main changes the tool (or this workflow).
+name: assetgen release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/assetgen/**"
+      - ".github/workflows/assetgen-release.yml"
+
+# Never run two releases at once; a newer push waits for the older one to finish.
+concurrency:
+  group: assetgen-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PROJECT: tools/assetgen/assetgen.csproj
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      # major.minor comes from <VersionPrefix> in the csproj; the patch is this workflow's run number.
+      - id: v
+        run: |
+          prefix=$(sed -n 's:.*<VersionPrefix>\([0-9]*\.[0-9]*\).*</VersionPrefix>.*:\1:p' "$PROJECT")
+          if [ -z "$prefix" ]; then echo "::error::No <VersionPrefix> in $PROJECT"; exit 1; fi
+          echo "version=$prefix.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { rid: win-x64,     os: windows-latest, ext: .exe, smoke: true }
+          - { rid: win-arm64,   os: windows-11-arm, ext: .exe, smoke: true }
+          # Ubuntu 22.04 links against an older glibc, so the binary runs on more distros.
+          - { rid: linux-x64,   os: ubuntu-22.04,     ext: "", smoke: true }
+          - { rid: linux-arm64, os: ubuntu-22.04-arm, ext: "", smoke: true }
+          - { rid: osx-arm64,   os: macos-latest,     ext: "", smoke: true }
+          # Cross-compiled on the Apple Silicon runner; not run, since Rosetta isn't guaranteed there.
+          - { rid: osx-x64,     os: macos-latest,     ext: "", smoke: false }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Native AOT prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Publish
+        run: >
+          dotnet publish "$PROJECT" -c Release -r ${{ matrix.rid }}
+          -p:Version=${{ needs.version.outputs.version }}
+          -o out
+
+      - name: Smoke test
+        if: matrix.smoke
+        run: |
+          ./out/assetgen${{ matrix.ext }} --version
+          mkdir -p smoke/assets/ui/buttons
+          touch smoke/assets/ui/buttons/red_button.png smoke/assets/ui/panel.png
+          ./out/assetgen${{ matrix.ext }} smoke/assets smoke/assets.h
+          cat smoke/assets.h
+          grep -q 'RED_BUTTON = "assets/ui/buttons/red_button.png"' smoke/assets.h
+
+      - name: Package
+        run: |
+          name=assetgen-${{ needs.version.outputs.version }}-${{ matrix.rid }}
+          mkdir -p dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a -tzip "dist/$name.zip" ./out/assetgen.exe > /dev/null
+          else
+            tar -czf "dist/$name.tar.gz" -C out assetgen
+          fi
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: assetgen-${{ matrix.rid }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      # Notes list only the assetgen commits since the previous assetgen release.
+      - name: Release notes
+        run: |
+          prev=$(git tag --list 'assetgen-v*' --sort=-v:refname | head -n1)
+          range=${prev:+$prev..}HEAD
+          {
+            echo "assetgen $VERSION, built from ${GITHUB_SHA::7}."
+            echo
+            echo "## Changes"
+            git log --no-merges --format='- %s (%h)' "$range" -- tools/assetgen .github/workflows/assetgen-release.yml
+          } > notes.md
+          cat notes.md
+
+      # --latest=false keeps tool releases from becoming the repo's "Latest" release.
+      - name: Publish release
+        run: >
+          gh release create "assetgen-v$VERSION" dist/*
+          --target "$GITHUB_SHA"
+          --title "assetgen $VERSION"
+          --notes-file notes.md
+          --latest=false
