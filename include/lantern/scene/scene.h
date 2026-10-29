@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "lantern/assets/asset_store.h"
 
 class SceneManager;
 
@@ -13,4 +14,5 @@ public:
 
 protected:
     bool done = false;
+    AssetStore assets;
 };
