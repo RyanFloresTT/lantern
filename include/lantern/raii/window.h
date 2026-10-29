@@ -11,4 +11,9 @@ public:
     ~Window() {
         CloseWindow();
     }
+
+    Window(const Window& other) = delete;
+    Window& operator=(const Window& other) = delete;
+    Window(Window&& other) noexcept = delete;
+    Window& operator=(Window&& other) noexcept = delete;
 };
