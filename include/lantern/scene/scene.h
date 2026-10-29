@@ -4,6 +4,7 @@ class SceneManager;
 
 class Scene {
 public:
+    virtual       ~Scene() = default;
     virtual void  Enter() {}
     virtual void  Update(float dt);
     virtual void  Draw();
