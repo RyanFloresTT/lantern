@@ -14,6 +14,8 @@ add_library(lantern STATIC
         src/scene/scene_manager.cpp
         include/lantern/game/game.h
         src/game/game.cpp
+        include/lantern/assets/asset_store.h
+        src/assets/asset_store.cpp
 )
 
 target_include_directories(lantern
