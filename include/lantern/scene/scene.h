@@ -1,7 +1,10 @@
 ﻿#pragma once
 
+class SceneManager;
+
 class Scene {
 public:
+    Scene(SceneManager& scene_manager);
     virtual      ~Scene() = default;
     virtual void Enter() {}
     virtual void Update(float dt) = 0;
@@ -10,4 +13,5 @@ public:
 
 protected:
     bool done = false;
+    SceneManager& scene_manager;
 };
