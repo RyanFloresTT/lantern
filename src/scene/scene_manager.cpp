@@ -20,6 +20,7 @@ void SceneManager::Run() {
             current = pending();
             pending = nullptr;
             current->Enter();
+            current->scene_manager = this;
         }
         if (!current) break;
 
@@ -34,6 +35,10 @@ void SceneManager::Run() {
             const float t     = transition_progress / transition_duration; // 0 -> 1
             const float alpha = 1.0f - std::abs(t * 2.0f - 1.0f);
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, alpha));
+        }
+
+        if (frame_callback.has_value()) {
+            frame_callback.value()();
         }
 
         EndDrawing();
