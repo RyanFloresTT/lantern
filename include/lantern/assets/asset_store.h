@@ -9,14 +9,14 @@ template <typename T> struct Asset;
 
 template <>
 struct Asset<Texture2D> {
-    static Texture2D Load(const std::string& path) { return LoadTexture(path.c_str()); }
+    static Texture2D Load(const std::string_view path) { return LoadTexture(path.data()); }
     static void      Unload(const Texture2D& asset) { UnloadTexture(asset); }
 };
 
 
 template <>
 struct Asset<Sound> {
-    static Sound     Load(const std::string& path) { return LoadSound(path.c_str()); }
+    static Sound     Load(const std::string_view path) { return LoadSound(path.data()); }
     static void      Unload(const Sound& asset) { UnloadSound(asset); }
 };
 
