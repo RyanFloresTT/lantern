@@ -20,6 +20,12 @@ struct Asset<Sound> {
     static void      Unload(const Sound& asset) { UnloadSound(asset); }
 };
 
+template <>
+struct Asset<Music> {
+    static Music     Load(const std::string_view path) { return LoadMusicStream(path.data()); }
+    static void      Unload(const Music& asset) { UnloadMusicStream(asset); }
+};
+
 class AssetStore {
 public:
     AssetStore() = default;
