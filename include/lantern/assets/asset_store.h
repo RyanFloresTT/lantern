@@ -6,7 +6,8 @@
 
 #include "raylib.h"
 
-template <typename T> struct Asset;
+template <typename T>
+struct Asset;
 
 template <>
 struct Asset<Texture2D> {
@@ -17,14 +18,14 @@ struct Asset<Texture2D> {
 
 template <>
 struct Asset<Sound> {
-    static Sound     Load(const std::string_view path) { return LoadSound(path.data()); }
-    static void      Unload(const Sound& asset) { UnloadSound(asset); }
+    static Sound Load(const std::string_view path) { return LoadSound(path.data()); }
+    static void  Unload(const Sound& asset) { UnloadSound(asset); }
 };
 
 template <>
 struct Asset<Music> {
-    static Music     Load(const std::string_view path) { return LoadMusicStream(path.data()); }
-    static void      Unload(const Music& asset) { UnloadMusicStream(asset); }
+    static Music Load(const std::string_view path) { return LoadMusicStream(path.data()); }
+    static void  Unload(const Music& asset) { UnloadMusicStream(asset); }
 };
 
 template <>
@@ -36,6 +37,7 @@ struct Asset<Font> {
         SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
         return font;
     }
+
     static void Unload(const Font& asset) { UnloadFont(asset); }
 };
 
@@ -44,9 +46,9 @@ public:
     AssetStore() = default;
     ~AssetStore();
 
-    AssetStore(const AssetStore& other) = delete;
-    AssetStore& operator=(const AssetStore& other) = delete;
-    AssetStore(AssetStore&& other) noexcept = delete;
+    AssetStore(const AssetStore& other)                = delete;
+    AssetStore& operator=(const AssetStore& other)     = delete;
+    AssetStore(AssetStore&& other) noexcept            = delete;
     AssetStore& operator=(AssetStore&& other) noexcept = delete;
 
     template <typename T>
@@ -54,14 +56,14 @@ public:
 
 private:
     std::tuple<std::unordered_map<std::string, Texture2D>,
-    std::unordered_map<std::string, Sound>,
-    std::unordered_map<std::string, Music>,
-    std::unordered_map<std::string, Font>> maps;
+               std::unordered_map<std::string, Sound>,
+               std::unordered_map<std::string, Music>,
+               std::unordered_map<std::string, Font>> maps;
 };
 
 template <typename T>
 T& AssetStore::Get(const std::string_view path) {
-    auto& map = std::get<std::unordered_map<std::string, T>>(maps);
+    auto&             map  = std::get<std::unordered_map<std::string, T>>(maps);
     const std::string data = path.data();
     if (map.contains(data)) {
         return map[data];

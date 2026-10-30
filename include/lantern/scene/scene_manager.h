@@ -7,8 +7,8 @@
 
 class SceneManager {
 public:
-    void        Run();
-    void        Quit() { running = false; }
+    void Run();
+    void Quit() { running = false; }
 
     void SetFrameCallback(const std::function<void()>& callback) { frame_callback = callback; }
 

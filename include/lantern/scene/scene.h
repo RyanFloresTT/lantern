@@ -13,6 +13,6 @@ public:
     SceneManager* scene_manager;
 
 protected:
-    bool done = false;
+    bool       done = false;
     AssetStore assets;
 };
