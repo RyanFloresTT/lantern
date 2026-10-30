@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <string>
+#include <tuple>
 #include <unordered_map>
 
 #include "raylib.h"
@@ -26,6 +27,18 @@ struct Asset<Music> {
     static void      Unload(const Music& asset) { UnloadMusicStream(asset); }
 };
 
+template <>
+struct Asset<Font> {
+    static constexpr int BaseSize = 96;
+
+    static Font Load(const std::string_view path) {
+        const Font font = LoadFontEx(path.data(), BaseSize, nullptr, 0);
+        SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+        return font;
+    }
+    static void Unload(const Font& asset) { UnloadFont(asset); }
+};
+
 class AssetStore {
 public:
     AssetStore() = default;
@@ -42,7 +55,8 @@ public:
 private:
     std::tuple<std::unordered_map<std::string, Texture2D>,
     std::unordered_map<std::string, Sound>,
-    std::unordered_map<std::string, Music>> maps;
+    std::unordered_map<std::string, Music>,
+    std::unordered_map<std::string, Font>> maps;
 };
 
 template <typename T>
