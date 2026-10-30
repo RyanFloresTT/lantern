@@ -13,9 +13,9 @@ public:
     virtual void Draw() = 0;
     bool         Done() const { return done; }
 
+    SceneManager* scene_manager;
 protected:
     bool       done = false;
-    SceneManager* scene_manager;
     AssetStore& asset_store;
     AssetScope assets;
 };
