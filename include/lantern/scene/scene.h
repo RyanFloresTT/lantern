@@ -5,6 +5,7 @@ class SceneManager;
 
 class Scene {
 public:
+    explicit      Scene(AssetStore& asset_store) : scene_manager(nullptr), assets(asset_store) {}
     virtual       ~Scene() = default;
     virtual void  Enter() {}
     virtual void  Update(float dt) = 0;
@@ -14,5 +15,5 @@ public:
 
 protected:
     bool       done = false;
-    AssetStore assets;
+    AssetStore& assets;
 };
