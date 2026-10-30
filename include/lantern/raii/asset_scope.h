@@ -23,6 +23,11 @@ public:
         assets[path] = ptr;
     }
 
+    template <typename T>
+    void LoadAll(const std::vector<std::string_view>& asset_paths) {
+        for (const auto& path : asset_paths) Load<T>(path);
+    }
+
 private:
     AssetStore& asset_store;
     std::unordered_map<std::string, std::shared_ptr<void>> assets;
