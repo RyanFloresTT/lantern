@@ -12,20 +12,20 @@ struct Asset;
 
 template <>
 struct Asset<Texture2D> {
-    static Texture2D Load(const std::string_view path) { return LoadTexture(path.data()); }
+    static Texture2D* Load(const std::string_view path) { return new Texture2D(LoadTexture(path.data())); }
     static void      Unload(const Texture2D& asset) { UnloadTexture(asset); }
 };
 
 
 template <>
 struct Asset<Sound> {
-    static Sound Load(const std::string_view path) { return LoadSound(path.data()); }
+    static Sound* Load(const std::string_view path) { return new Sound(LoadSound(path.data())); }
     static void  Unload(const Sound& asset) { UnloadSound(asset); }
 };
 
 template <>
 struct Asset<Music> {
-    static Music Load(const std::string_view path) { return LoadMusicStream(path.data()); }
+    static Music* Load(const std::string_view path) { return new Music(LoadMusicStream(path.data())); }
     static void  Unload(const Music& asset) { UnloadMusicStream(asset); }
 };
 
@@ -33,10 +33,10 @@ template <>
 struct Asset<Font> {
     static constexpr int BaseSize = 96;
 
-    static Font Load(const std::string_view path) {
+    static Font* Load(const std::string_view path) {
         const Font font = LoadFontEx(path.data(), BaseSize, nullptr, 0);
         SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
-        return font;
+        return new Font(font);
     }
 
     static void Unload(const Font& asset) { UnloadFont(asset); }
@@ -45,7 +45,6 @@ struct Asset<Font> {
 class AssetStore {
 public:
     AssetStore() = default;
-    ~AssetStore();
 
     AssetStore(const AssetStore& other)                = delete;
     AssetStore& operator=(const AssetStore& other)     = delete;
@@ -53,23 +52,29 @@ public:
     AssetStore& operator=(AssetStore&& other) noexcept = delete;
 
     template <typename T>
-    std::shared_ptr<T> Get(std::string_view path);
+    std::shared_ptr<T> Get(std::string_view file_path);
 
 private:
-    std::tuple<std::unordered_map<std::string, Texture2D>,
-               std::unordered_map<std::string, Sound>,
-               std::unordered_map<std::string, Music>,
-               std::unordered_map<std::string, Font>> maps;
+    std::tuple<std::unordered_map<std::string, std::weak_ptr<Texture2D>>,
+               std::unordered_map<std::string, std::weak_ptr<Sound>>,
+               std::unordered_map<std::string, std::weak_ptr<Music>>,
+               std::unordered_map<std::string, std::weak_ptr<Font>>> maps;
 };
 
 template <typename T>
-std::shared_ptr<T> AssetStore::Get(const std::string_view path) {
+std::shared_ptr<T> AssetStore::Get(const std::string_view file_path) {
     auto&             map  = std::get<std::unordered_map<std::string, std::weak_ptr<T>>>(maps);
-    const std::string data = path.data();
-    if (map.contains(data)) {
-        return map[data].lock();
+    const auto&       normalizedPath = std::string(file_path);
+
+    if (map.contains(normalizedPath)) {
+        if (std::shared_ptr<T> ptr = map[normalizedPath].lock()) return ptr;
     }
 
-    map[data] = Asset<T>::Load(data);
-    return map[data].lock();
+    std::shared_ptr<T> a(Asset<T>::Load(normalizedPath), [](T* asset) {
+        Asset<T>::Unload(*asset);
+        delete asset;
+    });
+
+    map[normalizedPath] = a;
+    return map[normalizedPath].lock();
 }
