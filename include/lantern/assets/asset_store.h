@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <memory>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -52,7 +53,7 @@ public:
     AssetStore& operator=(AssetStore&& other) noexcept = delete;
 
     template <typename T>
-    T& Get(std::string_view path);
+    std::shared_ptr<T> Get(std::string_view path);
 
 private:
     std::tuple<std::unordered_map<std::string, Texture2D>,
@@ -62,13 +63,13 @@ private:
 };
 
 template <typename T>
-T& AssetStore::Get(const std::string_view path) {
-    auto&             map  = std::get<std::unordered_map<std::string, T>>(maps);
+std::shared_ptr<T> AssetStore::Get(const std::string_view path) {
+    auto&             map  = std::get<std::unordered_map<std::string, std::weak_ptr<T>>>(maps);
     const std::string data = path.data();
     if (map.contains(data)) {
-        return map[data];
+        return map[data].lock();
     }
 
     map[data] = Asset<T>::Load(data);
-    return map[data];
+    return map[data].lock();
 }
