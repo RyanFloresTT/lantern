@@ -8,29 +8,34 @@
 #include "raylib.h"
 
 template <typename T>
-struct Asset;
+struct AssetTraits;
+
+typedef std::tuple<std::unordered_map<std::string, std::weak_ptr<Texture2D>>,
+               std::unordered_map<std::string, std::weak_ptr<Sound>>,
+               std::unordered_map<std::string, std::weak_ptr<Music>>,
+               std::unordered_map<std::string, std::weak_ptr<Font>>> AssetMaps;
 
 template <>
-struct Asset<Texture2D> {
+struct AssetTraits<Texture2D> {
     static Texture2D* Load(const std::string_view path) { return new Texture2D(LoadTexture(path.data())); }
     static void      Unload(const Texture2D& asset) { UnloadTexture(asset); }
 };
 
 
 template <>
-struct Asset<Sound> {
+struct AssetTraits<Sound> {
     static Sound* Load(const std::string_view path) { return new Sound(LoadSound(path.data())); }
     static void  Unload(const Sound& asset) { UnloadSound(asset); }
 };
 
 template <>
-struct Asset<Music> {
+struct AssetTraits<Music> {
     static Music* Load(const std::string_view path) { return new Music(LoadMusicStream(path.data())); }
     static void  Unload(const Music& asset) { UnloadMusicStream(asset); }
 };
 
 template <>
-struct Asset<Font> {
+struct AssetTraits<Font> {
     static constexpr int BaseSize = 96;
 
     static Font* Load(const std::string_view path) {
@@ -55,10 +60,7 @@ public:
     std::shared_ptr<T> Get(std::string_view file_path);
 
 private:
-    std::tuple<std::unordered_map<std::string, std::weak_ptr<Texture2D>>,
-               std::unordered_map<std::string, std::weak_ptr<Sound>>,
-               std::unordered_map<std::string, std::weak_ptr<Music>>,
-               std::unordered_map<std::string, std::weak_ptr<Font>>> maps;
+     AssetMaps maps;
 };
 
 template <typename T>
@@ -70,8 +72,8 @@ std::shared_ptr<T> AssetStore::Get(const std::string_view file_path) {
         if (std::shared_ptr<T> ptr = map[normalizedPath].lock()) return ptr;
     }
 
-    std::shared_ptr<T> a(Asset<T>::Load(normalizedPath), [](T* asset) {
-        Asset<T>::Unload(*asset);
+    std::shared_ptr<T> a(AssetTraits<T>::Load(normalizedPath), [](T* asset) {
+        AssetTraits<T>::Unload(*asset);
         delete asset;
     });
 
