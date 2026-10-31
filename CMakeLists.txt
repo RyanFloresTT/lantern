@@ -13,10 +13,9 @@ FetchContent_MakeAvailable(raylib)
 add_library(lantern STATIC
         src/scene/scene_manager.cpp
         include/lantern/game/game.h
-        src/game/game.cpp
         include/lantern/assets/asset_store.h
-        src/assets/asset_store.cpp
         include/lantern/raii/window.h
+        include/lantern/raii/asset_scope.h
 )
 
 target_include_directories(lantern

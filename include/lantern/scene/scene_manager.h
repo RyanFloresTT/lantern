@@ -7,6 +7,8 @@
 
 class SceneManager {
 public:
+    explicit SceneManager(AssetStore& asset_store) : assets(asset_store) {}
+
     void Run();
     void Quit() { running = false; }
 
@@ -15,7 +17,7 @@ public:
     template <typename T, typename... Args>
     void GoTo(Args... args) {
         if (current != nullptr) transitioning = true;
-        pending = [=] { return std::make_unique<T>(args...); };
+        pending = [=,this] { return std::make_unique<T>(assets, args...); };
     }
 
 private:
@@ -27,4 +29,5 @@ private:
     float                                   transition_progress = 0.0f;
     float                                   transition_duration = 1.0f;
     float                                   swap_time           = transition_duration / 2;
+    AssetStore&                             assets;
 };

@@ -7,7 +7,7 @@
 
 class Game {
 public:
-    Game(int width, int height, const std::string& title, int fps);
+    Game(const int width, const int height, const std::string& title, const int fps) : window(width, height, title.c_str(), fps), scene_manager(assets) {}
 
     ~Game()                                = default;
     Game(const Game& other)                = delete;
@@ -16,10 +16,11 @@ public:
     Game& operator=(Game&& other) noexcept = delete;
 
     SceneManager& GetSceneManager() { return scene_manager; }
-    void          Run();
+    void          Run() { scene_manager.Run(); }
 
 private:
     Window       window;
     Audio        audio;
+    AssetStore   assets;
     SceneManager scene_manager;
 };
